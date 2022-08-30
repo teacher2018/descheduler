@@ -48,4 +48,8 @@ type DeschedulerConfiguration struct {
 
 	// EvictLocalStoragePods allows pods using local storage to be evicted.
 	EvictLocalStoragePods bool
+
+	GraceSecs    int64
+	CordonSecs   int64
+	
 }

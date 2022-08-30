@@ -57,7 +57,7 @@ func removePodsViolatingNodeAffinityCount(ds *options.DeschedulerServer, strateg
 
 						if !nodeutil.PodFitsCurrentNode(pod, node) && nodeutil.PodFitsAnyNode(pod, nodes) {
 							glog.V(1).Infof("Evicting pod: %v", pod.Name)
-							evictions.EvictPod(ds.Client, pod, evictionPolicyGroupVersion, ds.DryRun)
+							evictions.EvictPod(ds.Client, pod, evictionPolicyGroupVersion, ds.DryRun, ds.GraceSecs)
 							nodepodCount[node]++
 						}
 					}

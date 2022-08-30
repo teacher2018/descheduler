@@ -28,12 +28,13 @@ import (
 	eutils "github.com/kubernetes-incubator/descheduler/pkg/descheduler/evictions/utils"
 )
 
-func EvictPod(client clientset.Interface, pod *v1.Pod, policyGroupVersion string, dryRun bool) (bool, error) {
+func EvictPod(client clientset.Interface, pod *v1.Pod, policyGroupVersion string, dryRun bool, graceSecs int64) (bool, error) {
 	if dryRun {
 		return true, nil
 	}
-	deleteOptions := &metav1.DeleteOptions{}
-	// GracePeriodSeconds ?
+	deleteOptions := &metav1.DeleteOptions{
+		GracePeriodSeconds: &graceSecs ,
+	}
 	eviction := &policy.Eviction{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: policyGroupVersion,
