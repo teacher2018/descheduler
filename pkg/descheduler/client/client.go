@@ -23,30 +23,34 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	mClientset "k8s.io/metrics/pkg/client/clientset_generated/clientset"
 )
 
-func CreateClient(kubeconfig string) (clientset.Interface, error) {
+func CreateClient(kubeconfig string) (clientset.Interface, mClientset.Interface, error) {
 	var cfg *rest.Config
 	if len(kubeconfig) != 0 {
 		master, err := GetMasterFromKubeconfig(kubeconfig)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to parse kubeconfig file: %v ", err)
+			return nil, nil,fmt.Errorf("Failed to parse kubeconfig file: %v ", err)
 		}
 
 		cfg, err = clientcmd.BuildConfigFromFlags(master, kubeconfig)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to build config: %v", err)
+			return nil,nil, fmt.Errorf("Unable to build config: %v", err)
 		}
 
 	} else {
 		var err error
 		cfg, err = rest.InClusterConfig()
 		if err != nil {
-			return nil, fmt.Errorf("Unable to build in cluster config: %v", err)
+			return nil, nil,fmt.Errorf("Unable to build in cluster config: %v", err)
 		}
 	}
 
-	return clientset.NewForConfig(cfg)
+	metricsClient, _ := mClientset.NewForConfig(cfg)
+	coreClientset, err := clientset.NewForConfig(cfg)
+	return coreClientset, metricsClient, err
 }
 
 func GetMasterFromKubeconfig(filename string) (string, error) {

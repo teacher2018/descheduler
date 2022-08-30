@@ -35,11 +35,11 @@ func RemovePodsViolatingInterPodAntiAffinity(ds *options.DeschedulerServer, stra
 	if !strategy.Enabled {
 		return
 	}
-	removePodsWithAffinityRules(ds.Client, policyGroupVersion, nodes, ds.DryRun, nodePodCount, ds.MaxNoOfPodsToEvictPerNode, ds.EvictLocalStoragePods)
+	removePodsWithAffinityRules(ds.Client, policyGroupVersion, nodes, ds.DryRun, nodePodCount, ds.MaxNoOfPodsToEvictPerNode, ds.EvictLocalStoragePods, ds.GraceSecs)
 }
 
 // removePodsWithAffinityRules evicts pods on the node which are having a pod affinity rules.
-func removePodsWithAffinityRules(client clientset.Interface, policyGroupVersion string, nodes []*v1.Node, dryRun bool, nodePodCount nodePodEvictedCount, maxPodsToEvict int, evictLocalStoragePods bool) int {
+func removePodsWithAffinityRules(client clientset.Interface, policyGroupVersion string, nodes []*v1.Node, dryRun bool, nodePodCount nodePodEvictedCount, maxPodsToEvict int, evictLocalStoragePods bool, graceSecs int64) int {
 	podsEvicted := 0
 	for _, node := range nodes {
 		glog.V(1).Infof("Processing node: %#v\n", node.Name)
@@ -53,7 +53,7 @@ func removePodsWithAffinityRules(client clientset.Interface, policyGroupVersion 
 				break
 			}
 			if checkPodsWithAntiAffinityExist(pods[i], pods) {
-				success, err := evictions.EvictPod(client, pods[i], policyGroupVersion, dryRun)
+				success, err := evictions.EvictPod(client, pods[i], policyGroupVersion, dryRun, graceSecs)
 				if !success {
 					glog.Infof("Error when evicting pod: %#v (%#v)\n", pods[i].Name, err)
 				} else {

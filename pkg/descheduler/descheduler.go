@@ -26,15 +26,16 @@ import (
 	eutils "github.com/kubernetes-incubator/descheduler/pkg/descheduler/evictions/utils"
 	nodeutil "github.com/kubernetes-incubator/descheduler/pkg/descheduler/node"
 	"github.com/kubernetes-incubator/descheduler/pkg/descheduler/strategies"
+
 )
 
 func Run(rs *options.DeschedulerServer) error {
-
-	rsclient, err := client.CreateClient(rs.KubeconfigFile)
+	rsclient,metricsClient, err := client.CreateClient(rs.KubeconfigFile)
 	if err != nil {
 		return err
 	}
 	rs.Client = rsclient
+	rs.MetricsClient = metricsClient
 
 	deschedulerPolicy, err := LoadPolicyConfig(rs.PolicyConfigFile)
 	if err != nil {

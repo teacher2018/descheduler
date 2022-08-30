@@ -40,11 +40,11 @@ func RemoveDuplicatePods(ds *options.DeschedulerServer, strategy api.Descheduler
 	if !strategy.Enabled {
 		return
 	}
-	deleteDuplicatePods(ds.Client, policyGroupVersion, nodes, ds.DryRun, nodepodCount, ds.MaxNoOfPodsToEvictPerNode, ds.EvictLocalStoragePods)
+	deleteDuplicatePods(ds.Client, policyGroupVersion, nodes, ds.DryRun, nodepodCount, ds.MaxNoOfPodsToEvictPerNode, ds.EvictLocalStoragePods, ds.GraceSecs)
 }
 
 // deleteDuplicatePods evicts the pod from node and returns the count of evicted pods.
-func deleteDuplicatePods(client clientset.Interface, policyGroupVersion string, nodes []*v1.Node, dryRun bool, nodepodCount nodePodEvictedCount, maxPodsToEvict int, evictLocalStoragePods bool) int {
+func deleteDuplicatePods(client clientset.Interface, policyGroupVersion string, nodes []*v1.Node, dryRun bool, nodepodCount nodePodEvictedCount, maxPodsToEvict int, evictLocalStoragePods bool, graceSecs int64) int {
 	podsEvicted := 0
 	for _, node := range nodes {
 		glog.V(1).Infof("Processing node: %#v", node.Name)
@@ -57,7 +57,7 @@ func deleteDuplicatePods(client clientset.Interface, policyGroupVersion string, 
 					if maxPodsToEvict > 0 && nodepodCount[node]+1 > maxPodsToEvict {
 						break
 					}
-					success, err := evictions.EvictPod(client, pods[i], policyGroupVersion, dryRun)
+					success, err := evictions.EvictPod(client, pods[i], policyGroupVersion, dryRun, graceSecs)
 					if !success {
 						glog.Infof("Error when evicting pod: %#v (%#v)", pods[i].Name, err)
 					} else {
